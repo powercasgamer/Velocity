@@ -132,8 +132,6 @@ tasks {
             args("-add-plugin=${testPluginJar.get().asFile.absolutePath}")
         }
 
-        systemProperty("net.kyori.adventure.text.warnWhenLegacyFormattingDetected", true)
-
         val memoryMb = providers.gradleProperty("velocity.runMemoryMb").getOrElse("512")
         minHeapSize = "${memoryMb}M"
         maxHeapSize = "${memoryMb}M"

@@ -47,15 +47,12 @@ public final class ProxyOptions {
     final OptionSpec<Integer> port = parser.acceptsAll(Arrays.asList("p", "port"),
             "Specify the bind port to be used. The configuration bind port will be ignored.")
         .withRequiredArg().ofType(Integer.class);
-    final OptionSpec<File> plugins =
-        parser
-            .acceptsAll(
-                Arrays.asList("add-plugin", "add-extra-plugin-jar"),
+    final OptionSpec<File> plugins = parser
+            .acceptsAll(Arrays.asList("add-plugin", "add-extra-plugin-jar"),
                 "Add an extra plugin jar to the plugin manager. This is useful for development.")
             .withRequiredArg()
             .ofType(File.class)
-            .defaultsTo(new File[] {})
-            .describedAs("Jar file");
+            .defaultsTo(new File[] {});
     final OptionSet set = parser.parse(args);
 
     this.help = set.has(help);
