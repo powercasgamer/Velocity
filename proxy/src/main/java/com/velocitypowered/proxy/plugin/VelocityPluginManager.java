@@ -75,14 +75,11 @@ public class VelocityPluginManager implements PluginManager {
   }
 
   /**
-   * Loads all plugins from the specified {@code directory}.
+   * Loads a plugin from the specified {@code path}.
    *
-   * @param path the directory to load from
-   * @throws IOException if we could not open the directory
+   * @param path the path to load from
    */
-  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE",
-          justification = "I looked carefully and there's no way SpotBugs is right.")
-  public void loadPlugin(Path path) throws IOException {
+  public void loadPlugin(Path path) {
     checkNotNull(path, "path");
 
     List<PluginDescription> found = new ArrayList<>();

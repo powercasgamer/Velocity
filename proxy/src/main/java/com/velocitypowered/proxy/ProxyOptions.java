@@ -26,6 +26,7 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -36,7 +37,7 @@ public final class ProxyOptions {
   private static final Logger logger = LogManager.getLogger(ProxyOptions.class);
   private final boolean help;
   private final @Nullable Integer port;
-  private final List<File> extraPlugins;
+  private List<File> extraPlugins;
 
   ProxyOptions(final String[] args) {
     final OptionParser parser = new OptionParser();
@@ -78,7 +79,16 @@ public final class ProxyOptions {
     return this.port;
   }
 
-  public List<File> getExtraPlugins() {
+  /**
+   * javadoc.
+   *
+   * @return the extra plugins
+   * 
+   */
+  public @NonNull List<@Nullable File> getExtraPlugins() {
+    if (this.extraPlugins == null) {
+      this.extraPlugins = List.of();
+    }
     return this.extraPlugins;
   }
 }
