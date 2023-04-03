@@ -78,6 +78,7 @@ $RECYCLE.BIN/
 gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
+test-plugin.settings.gradle.kts
 
 ### Other trash ###
 logs/

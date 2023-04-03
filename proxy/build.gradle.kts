@@ -125,7 +125,6 @@ tasks {
         workingDir = rootProject.layout.projectDirectory
             .dir(providers.gradleProperty("velocity.runWorkDir").getOrElse("run"))
             .asFile
-//    javaLauncher.set(project.javaToolchains.
 
         if (rootProject.childProjects["test-plugin"] != null) {
             val testPluginJar = rootProject.project(":test-plugin").tasks.jar.flatMap { it.archiveFile }
