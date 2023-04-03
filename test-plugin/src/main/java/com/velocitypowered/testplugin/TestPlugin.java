@@ -10,7 +10,8 @@ import org.slf4j.Logger;
     id = "test-plugin",
     authors = "Velocity Contributors",
     name = "Test Plugin",
-    version = "1.0.0")
+    version = "1.0.0"
+)
 public class TestPlugin {
 
   @Inject Logger logger;
