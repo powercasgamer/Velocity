@@ -83,7 +83,7 @@ public final class ProxyOptions {
    * javadoc.
    *
    * @return the extra plugins
-   * 
+   *
    */
   public @NonNull List<@Nullable File> getExtraPlugins() {
     if (this.extraPlugins == null) {

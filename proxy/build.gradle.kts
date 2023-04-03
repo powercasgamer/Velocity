@@ -119,3 +119,28 @@ dependencies {
     compileOnly(libs.spotbugs.annotations)
     testImplementation(libs.mockito)
 }
+
+tasks {
+    runShadow {
+        workingDir = rootProject.layout.projectDirectory
+            .dir(providers.gradleProperty("velocity.runWorkDir").getOrElse("run"))
+            .asFile
+//    javaLauncher.set(project.javaToolchains.
+
+        if (rootProject.childProjects["test-plugin"] != null) {
+            val testPluginJar = rootProject.project(":test-plugin").tasks.jar.flatMap { it.archiveFile }
+            inputs.file(testPluginJar)
+            args("-add-plugin=${testPluginJar.get().asFile.absolutePath}")
+        }
+
+        systemProperty("net.kyori.adventure.text.warnWhenLegacyFormattingDetected", true)
+
+        val memoryMb = providers.gradleProperty("velocity.runMemoryMb").getOrElse("512")
+        minHeapSize = "${memoryMb}M"
+        maxHeapSize = "${memoryMb}M"
+
+        doFirst {
+            workingDir.mkdirs()
+        }
+    }
+}
