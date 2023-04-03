@@ -67,6 +67,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -77,6 +78,7 @@ import java.security.KeyPair;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -341,7 +343,10 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
               pluginPath);
           return;
         }
-
+        List<File> files = options.getExtraPlugins();
+        for (File file : files) {
+          pluginManager.loadPlugin(file.toPath());
+        }
         pluginManager.loadPlugins(pluginPath);
       }
     } catch (Exception e) {
