@@ -95,7 +95,160 @@ public class VelocityPluginManager implements PluginManager {
       return;
     }
 
-    List<PluginDescription> sortedPlugins = PluginDependencyUtils.sortCandidates(found);
+    loadPlugins(loader, found);
+//    List<PluginDescription> sortedPlugins = PluginDependencyUtils.sortCandidates(found);
+//
+//    Set<String> loadedPluginsById = new HashSet<>();
+//    Map<PluginContainer, Module> pluginContainers = new LinkedHashMap<>();
+//    // Now load the plugins
+//    pluginLoad:
+//    for (PluginDescription candidate : sortedPlugins) {
+//      // Verify dependencies
+//      for (PluginDependency dependency : candidate.getDependencies()) {
+//        if (!dependency.isOptional() && !loadedPluginsById.contains(dependency.getId())) {
+//          logger.error("Can't load plugin {} due to missing dependency {}", candidate.getId(),
+//                  dependency.getId());
+//          continue pluginLoad;
+//        }
+//      }
+//
+//      try {
+//        PluginDescription realPlugin = loader.createPluginFromCandidate(candidate);
+//        VelocityPluginContainer container = new VelocityPluginContainer(realPlugin);
+//        pluginContainers.put(container, loader.createModule(container));
+//        loadedPluginsById.add(realPlugin.getId());
+//      } catch (Exception e) {
+//        logger.error("Can't create module for plugin {}", candidate.getId(), e);
+//      }
+//    }
+//
+//    // Make a global Guice module that with common bindings for every plugin
+//    AbstractModule commonModule = new AbstractModule() {
+//      @Override
+//      protected void configure() {
+//        bind(ProxyServer.class).toInstance(server);
+//        bind(PluginManager.class).toInstance(server.getPluginManager());
+//        bind(EventManager.class).toInstance(server.getEventManager());
+//        bind(CommandManager.class).toInstance(server.getCommandManager());
+//        for (PluginContainer container : pluginContainers.keySet()) {
+//          bind(PluginContainer.class)
+//                  .annotatedWith(Names.named(container.getDescription().getId()))
+//                  .toInstance(container);
+//        }
+//      }
+//    };
+//
+//    for (Map.Entry<PluginContainer, Module> plugin : pluginContainers.entrySet()) {
+//      PluginContainer container = plugin.getKey();
+//      PluginDescription description = container.getDescription();
+//
+//      try {
+//        loader.createPlugin(container, plugin.getValue(), commonModule);
+//      } catch (Exception e) {
+//        logger.error("Can't create plugin {}", description.getId(), e);
+//        continue;
+//      }
+//
+//      logger.info("Loaded plugin {} {} by {}", description.getId(), description.getVersion()
+//              .orElse("<UNKNOWN>"), Joiner.on(", ").join(description.getAuthors()));
+//      registerPlugin(container);
+//    }
+  }
+
+  /**
+   * Loads all plugins from the specified {@code directory}.
+   *
+   * @param directory the directory to load from
+   * @throws IOException if we could not open the directory
+   */
+  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE",
+      justification = "I looked carefully and there's no way SpotBugs is right.")
+  public void loadPlugins(Path directory) throws IOException {
+    checkNotNull(directory, "directory");
+    checkArgument(directory.toFile().isDirectory(), "provided path isn't a directory");
+
+    List<PluginDescription> found = new ArrayList<>();
+    JavaPluginLoader loader = new JavaPluginLoader(server, directory);
+
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory,
+        p -> p.toFile().isFile() && p.toString().endsWith(".jar"))) {
+      for (Path path : stream) {
+        try {
+          found.add(loader.loadCandidate(path));
+        } catch (Exception e) {
+          logger.error("Unable to load plugin {}", path, e);
+        }
+      }
+    }
+
+    if (found.isEmpty()) {
+      // No plugins found
+      return;
+    }
+
+    loadPlugins(loader, found);
+
+//    List<PluginDescription> sortedPlugins = PluginDependencyUtils.sortCandidates(found);
+//
+//    Set<String> loadedPluginsById = new HashSet<>();
+//    Map<PluginContainer, Module> pluginContainers = new LinkedHashMap<>();
+//    // Now load the plugins
+//    pluginLoad:
+//    for (PluginDescription candidate : sortedPlugins) {
+//      // Verify dependencies
+//      for (PluginDependency dependency : candidate.getDependencies()) {
+//        if (!dependency.isOptional() && !loadedPluginsById.contains(dependency.getId())) {
+//          logger.error("Can't load plugin {} due to missing dependency {}", candidate.getId(),
+//              dependency.getId());
+//          continue pluginLoad;
+//        }
+//      }
+//
+//      try {
+//        PluginDescription realPlugin = loader.createPluginFromCandidate(candidate);
+//        VelocityPluginContainer container = new VelocityPluginContainer(realPlugin);
+//        pluginContainers.put(container, loader.createModule(container));
+//        loadedPluginsById.add(realPlugin.getId());
+//      } catch (Exception e) {
+//        logger.error("Can't create module for plugin {}", candidate.getId(), e);
+//      }
+//    }
+//
+//    // Make a global Guice module that with common bindings for every plugin
+//    AbstractModule commonModule = new AbstractModule() {
+//      @Override
+//      protected void configure() {
+//        bind(ProxyServer.class).toInstance(server);
+//        bind(PluginManager.class).toInstance(server.getPluginManager());
+//        bind(EventManager.class).toInstance(server.getEventManager());
+//        bind(CommandManager.class).toInstance(server.getCommandManager());
+//        for (PluginContainer container : pluginContainers.keySet()) {
+//          bind(PluginContainer.class)
+//              .annotatedWith(Names.named(container.getDescription().getId()))
+//              .toInstance(container);
+//        }
+//      }
+//    };
+//
+//    for (Map.Entry<PluginContainer, Module> plugin : pluginContainers.entrySet()) {
+//      PluginContainer container = plugin.getKey();
+//      PluginDescription description = container.getDescription();
+//
+//      try {
+//        loader.createPlugin(container, plugin.getValue(), commonModule);
+//      } catch (Exception e) {
+//        logger.error("Can't create plugin {}", description.getId(), e);
+//        continue;
+//      }
+//
+//      logger.info("Loaded plugin {} {} by {}", description.getId(), description.getVersion()
+//          .orElse("<UNKNOWN>"), Joiner.on(", ").join(description.getAuthors()));
+//      registerPlugin(container);
+//    }
+  }
+
+  private void loadPlugins(JavaPluginLoader loader, List<PluginDescription> foundPlugins) {
+    List<PluginDescription> sortedPlugins = PluginDependencyUtils.sortCandidates(foundPlugins);
 
     Set<String> loadedPluginsById = new HashSet<>();
     Map<PluginContainer, Module> pluginContainers = new LinkedHashMap<>();
@@ -150,96 +303,6 @@ public class VelocityPluginManager implements PluginManager {
 
       logger.info("Loaded plugin {} {} by {}", description.getId(), description.getVersion()
               .orElse("<UNKNOWN>"), Joiner.on(", ").join(description.getAuthors()));
-      registerPlugin(container);
-    }
-  }
-
-  /**
-   * Loads all plugins from the specified {@code directory}.
-   *
-   * @param directory the directory to load from
-   * @throws IOException if we could not open the directory
-   */
-  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE",
-      justification = "I looked carefully and there's no way SpotBugs is right.")
-  public void loadPlugins(Path directory) throws IOException {
-    checkNotNull(directory, "directory");
-    checkArgument(directory.toFile().isDirectory(), "provided path isn't a directory");
-
-    List<PluginDescription> found = new ArrayList<>();
-    JavaPluginLoader loader = new JavaPluginLoader(server, directory);
-
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory,
-        p -> p.toFile().isFile() && p.toString().endsWith(".jar"))) {
-      for (Path path : stream) {
-        try {
-          found.add(loader.loadCandidate(path));
-        } catch (Exception e) {
-          logger.error("Unable to load plugin {}", path, e);
-        }
-      }
-    }
-
-    if (found.isEmpty()) {
-      // No plugins found
-      return;
-    }
-
-    List<PluginDescription> sortedPlugins = PluginDependencyUtils.sortCandidates(found);
-
-    Set<String> loadedPluginsById = new HashSet<>();
-    Map<PluginContainer, Module> pluginContainers = new LinkedHashMap<>();
-    // Now load the plugins
-    pluginLoad:
-    for (PluginDescription candidate : sortedPlugins) {
-      // Verify dependencies
-      for (PluginDependency dependency : candidate.getDependencies()) {
-        if (!dependency.isOptional() && !loadedPluginsById.contains(dependency.getId())) {
-          logger.error("Can't load plugin {} due to missing dependency {}", candidate.getId(),
-              dependency.getId());
-          continue pluginLoad;
-        }
-      }
-
-      try {
-        PluginDescription realPlugin = loader.createPluginFromCandidate(candidate);
-        VelocityPluginContainer container = new VelocityPluginContainer(realPlugin);
-        pluginContainers.put(container, loader.createModule(container));
-        loadedPluginsById.add(realPlugin.getId());
-      } catch (Exception e) {
-        logger.error("Can't create module for plugin {}", candidate.getId(), e);
-      }
-    }
-
-    // Make a global Guice module that with common bindings for every plugin
-    AbstractModule commonModule = new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(ProxyServer.class).toInstance(server);
-        bind(PluginManager.class).toInstance(server.getPluginManager());
-        bind(EventManager.class).toInstance(server.getEventManager());
-        bind(CommandManager.class).toInstance(server.getCommandManager());
-        for (PluginContainer container : pluginContainers.keySet()) {
-          bind(PluginContainer.class)
-              .annotatedWith(Names.named(container.getDescription().getId()))
-              .toInstance(container);
-        }
-      }
-    };
-
-    for (Map.Entry<PluginContainer, Module> plugin : pluginContainers.entrySet()) {
-      PluginContainer container = plugin.getKey();
-      PluginDescription description = container.getDescription();
-
-      try {
-        loader.createPlugin(container, plugin.getValue(), commonModule);
-      } catch (Exception e) {
-        logger.error("Can't create plugin {}", description.getId(), e);
-        continue;
-      }
-
-      logger.info("Loaded plugin {} {} by {}", description.getId(), description.getVersion()
-          .orElse("<UNKNOWN>"), Joiner.on(", ").join(description.getAuthors()));
       registerPlugin(container);
     }
   }
