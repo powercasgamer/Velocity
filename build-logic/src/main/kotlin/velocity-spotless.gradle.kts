@@ -12,5 +12,7 @@ extensions.configure<SpotlessExtension> {
             licenseHeaderFile(rootProject.file("HEADER.txt"))
         }
         removeUnusedImports()
+        googleJavaFormat()
+            .formatJavadoc(false)
     }
 }
